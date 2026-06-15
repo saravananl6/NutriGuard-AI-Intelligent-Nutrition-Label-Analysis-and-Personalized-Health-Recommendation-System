@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Nutritrack - Health Nutrition Compliance Checker{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="{{ url_for('index') }}" class="navbar-brand">
+                <i class="fas fa-heartbeat"></i>
+                Nutritrack
+            </a>
+            <ul class="navbar-nav">
+                {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('home') }}" class="nav-link {% if request.endpoint == 'home' %}active{% endif %}">
+                        <i class="fas fa-home"></i> Home
+                    </a></li>
+                    <li><a href="{{ url_for('checker') }}" class="nav-link {% if request.endpoint == 'checker' %}active{% endif %}">
+                        <i class="fas fa-search"></i> Checker
+                    </a></li>
+                    <li><a href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %}">
+                        <i class="fas fa-history"></i> History
+                    </a></li>
+                    <li><a href="{{ url_for('logout') }}" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </a></li>
+                {% else %}
+                    <li><a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">Home</a></li>
+                    <li><a href="{{ url_for('login') }}" class="nav-link {% if request.endpoint == 'login' %}active{% endif %}">Login</a></li>
+                    <li><a href="{{ url_for('register') }}" class="btn btn-primary">Get Started</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container" style="margin-top: 20px;">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        <i class="fas fa-{{ 'check-circle' if category == 'success' else 'exclamation-triangle' if category == 'warning' else 'times-circle' if category == 'danger' else 'info-circle' }}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-content">
+            <p>&copy; 2026 Nutritrack. All rights reserved. Your Health, Our Priority.</p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">
+                <i class="fas fa-shield-alt"></i> Protecting your health through smart nutrition analysis
+            </p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

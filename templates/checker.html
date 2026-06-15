@@ -1,0 +1,340 @@
+{% extends "base.html" %}
+
+{% block title %}Nutrition Checker - Nutritrack{% endblock %}
+
+{% block extra_css %}
+<style>
+    .checker-container {
+        max-width: 700px;
+        margin: 40px auto;
+    }
+    
+    .checker-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .checker-header h1 {
+        color: var(--primary);
+        margin-bottom: 10px;
+    }
+    
+    .checker-header p {
+        color: var(--gray-600);
+        font-size: 1.1rem;
+    }
+    
+    .checker-card {
+        background: var(--white);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .step-indicator {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 40px;
+    }
+    
+    .step {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .step-number {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--cream);
+        color: var(--gray-600);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .step.active .step-number {
+        background: var(--primary);
+        color: var(--white);
+    }
+    
+    .step-text {
+        font-weight: 600;
+        color: var(--gray-600);
+    }
+    
+    .step.active .step-text {
+        color: var(--primary);
+    }
+    
+    .image-preview {
+        width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+        border-radius: 12px;
+        margin-top: 15px;
+        display: none;
+    }
+    
+    .age-input-wrapper {
+        position: relative;
+    }
+    
+    .age-input-wrapper i {
+        position: absolute;
+        left: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--gray-400);
+        font-size: 1.2rem;
+    }
+    
+    .age-input-wrapper .form-control {
+        padding-left: 50px;
+    }
+    
+    .upload-preview {
+        margin-top: 20px;
+        padding: 20px;
+        background: var(--cream);
+        border-radius: 12px;
+        display: none;
+    }
+    
+    .upload-preview.active {
+        display: block;
+    }
+    
+    .upload-preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .upload-preview-header h4 {
+        margin: 0;
+        color: var(--gray-800);
+    }
+    
+    .remove-btn {
+        background: var(--danger);
+        color: var(--white);
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: var(--transition);
+    }
+    
+    .remove-btn:hover {
+        background: #E74C3C;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="checker-container">
+        <div class="checker-header">
+            <h1><i class="fas fa-search"></i> Nutrition Label Checker</h1>
+            <p>Upload a nutrition label and get instant health analysis</p>
+        </div>
+        
+        <div class="checker-card">
+            <div class="step-indicator">
+                <div class="step active">
+                    <div class="step-number">1</div>
+                    <div class="step-text">Age</div>
+                </div>
+                <div style="width: 40px; height: 2px; background: var(--gray-300); margin-top: 20px;"></div>
+                <div class="step active">
+                    <div class="step-number">2</div>
+                    <div class="step-text">Upload</div>
+                </div>
+                <div style="width: 40px; height: 2px; background: var(--gray-300); margin-top: 20px;"></div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-text">Analyze</div>
+                </div>
+            </div>
+            
+            <form method="POST" action="{{ url_for('checker') }}" enctype="multipart/form-data" id="checkerForm">
+                <div class="form-group">
+                    <label for="age" class="form-label">
+                        <i class="fas fa-user"></i> Enter Age
+                    </label>
+                    <div class="age-input-wrapper">
+                        <i class="fas fa-birthday-cake"></i>
+                        <input 
+                            type="number" 
+                            class="form-control" 
+                            id="age" 
+                            name="age" 
+                            placeholder="Enter age in years" 
+                            required
+                            min="1"
+                            max="120"
+                        >
+                    </div>
+                    <small style="color: var(--gray-500); margin-top: 5px; display: block;">
+                        <i class="fas fa-info-circle"></i> Age helps us provide personalized recommendations
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="weight" class="form-label">
+                        <i class="fas fa-weight"></i> Enter Weight
+                    </label>
+                    <div class="age-input-wrapper">
+                        <i class="fas fa-balance-scale"></i>
+                        <input 
+                            type="number" 
+                            class="form-control" 
+                            id="weight" 
+                            name="weight" 
+                            placeholder="Enter weight in kg" 
+                            required
+                            min="2"
+                            max="500"
+                            step="0.1"
+                        >
+                    </div>
+                    <small style="color: var(--gray-500); margin-top: 5px; display: block;">
+                        <i class="fas fa-info-circle"></i> Weight is used to calculate your daily nutritional needs
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-camera"></i> Upload Nutrition Label
+                    </label>
+                    <div class="file-upload">
+                        <input 
+                            type="file" 
+                            class="file-upload-input" 
+                            id="nutrition_label" 
+                            name="nutrition_label" 
+                            accept="image/*"
+                            required
+                        >
+                        <label for="nutrition_label" class="file-upload-label" id="uploadLabel">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <div>
+                                <strong>Click to upload</strong> or drag and drop<br>
+                                <small style="color: var(--gray-500);">PNG, JPG, JPEG, GIF (Max 16MB)</small>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="upload-preview" id="previewContainer">
+                    <div class="upload-preview-header">
+                        <h4><i class="fas fa-image"></i> Preview</h4>
+                        <button type="button" class="remove-btn" id="removeBtn">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </div>
+                    <img id="imagePreview" class="image-preview" alt="Preview">
+                    <p id="fileName" style="margin: 10px 0 0 0; color: var(--gray-600); font-size: 0.9rem;"></p>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%; margin-top: 20px;">
+                    <i class="fas fa-magic"></i> Analyze Nutrition Label
+                </button>
+            </form>
+            
+            <div style="margin-top: 30px; padding: 20px; background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%); border-radius: 12px;">
+                <h4 style="margin-bottom: 15px;">
+                    <i class="fas fa-lightbulb" style="color: var(--warning);"></i> Tips for Best Results
+                </h4>
+                <ul style="margin: 0; padding-left: 25px; color: var(--gray-700);">
+                    <li>Ensure the nutrition label is clear and well-lit</li>
+                    <li>Capture the entire nutrition facts table</li>
+                    <li>Avoid shadows and glare on the label</li>
+                    <li>Hold camera steady for sharp images</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const fileInput = document.getElementById('nutrition_label');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewContainer = document.getElementById('previewContainer');
+    const fileName = document.getElementById('fileName');
+    const removeBtn = document.getElementById('removeBtn');
+    const uploadLabel = document.getElementById('uploadLabel');
+    
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.style.display = 'block';
+                previewContainer.classList.add('active');
+                fileName.textContent = file.name;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    removeBtn.addEventListener('click', function() {
+        fileInput.value = '';
+        imagePreview.src = '';
+        imagePreview.style.display = 'none';
+        previewContainer.classList.remove('active');
+        fileName.textContent = '';
+    });
+    
+    // Drag and drop
+    const uploadArea = uploadLabel;
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight(e) {
+        uploadArea.style.borderColor = 'var(--primary)';
+        uploadArea.style.background = 'var(--cream-dark)';
+    }
+    
+    function unhighlight(e) {
+        uploadArea.style.borderColor = '';
+        uploadArea.style.background = '';
+    }
+    
+    uploadArea.addEventListener('drop', handleDrop, false);
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        fileInput.files = files;
+        
+        const event = new Event('change', { bubbles: true });
+        fileInput.dispatchEvent(event);
+    }
+</script>
+{% endblock %}

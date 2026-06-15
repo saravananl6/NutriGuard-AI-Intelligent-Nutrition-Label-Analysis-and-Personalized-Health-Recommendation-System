@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+
+{% block title %}History - Nutritrack{% endblock %}
+
+{% block extra_css %}
+<style>
+    .history-header {
+        text-align: center;
+        margin: 40px 0;
+    }
+    
+    .history-header h1 {
+        color: var(--primary);
+        margin-bottom: 10px;
+    }
+    
+    .filter-bar {
+        background: var(--white);
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 30px;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    
+    .filter-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .history-grid {
+        display: grid;
+        gap: 20px;
+    }
+    
+    .history-item {
+        background: var(--white);
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 20px;
+        align-items: center;
+    }
+    
+    .history-item:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateX(5px);
+    }
+    
+    .history-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        flex-shrink: 0;
+    }
+    
+    .history-icon.recommended {
+        background: linear-gradient(135deg, #D3F9D8 0%, #B9F5C0 100%);
+        color: var(--success);
+    }
+    
+    .history-icon.not-recommended {
+        background: linear-gradient(135deg, #FFE3E3 0%, #FFD1D1 100%);
+        color: var(--danger);
+    }
+    
+    .history-content h3 {
+        margin-bottom: 8px;
+        font-size: 1.2rem;
+    }
+    
+    .history-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        color: var(--gray-600);
+        font-size: 0.9rem;
+    }
+    
+    .history-meta span {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .history-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 40px;
+        flex-wrap: wrap;
+    }
+    
+    .pagination a, .pagination span {
+        padding: 10px 15px;
+        border-radius: 8px;
+        background: var(--white);
+        color: var(--gray-700);
+        text-decoration: none;
+        transition: var(--transition);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .pagination a:hover {
+        background: var(--primary);
+        color: var(--white);
+        transform: translateY(-2px);
+    }
+    
+    .pagination .active {
+        background: var(--primary);
+        color: var(--white);
+    }
+    
+    .pagination .disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--white);
+        border-radius: 12px;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .empty-state i {
+        font-size: 5rem;
+        color: var(--gray-400);
+        margin-bottom: 20px;
+    }
+    
+    .empty-state h3 {
+        color: var(--gray-600);
+        margin-bottom: 10px;
+    }
+    
+    .empty-state p {
+        color: var(--gray-500);
+        margin-bottom: 25px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="history-header">
+        <h1><i class="fas fa-history"></i> Nutrition Check History</h1>
+        <p>View and manage all your nutrition label analyses</p>
+    </div>
+    
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="filter-item">
+            <i class="fas fa-filter"></i>
+            <span style="font-weight: 600;">Total Checks: {{ checks.total }}</span>
+        </div>
+        <div class="filter-item">
+            <a href="{{ url_for('home') }}" class="btn btn-sm btn-outline">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a href="{{ url_for('checker') }}" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus"></i> New Check
+            </a>
+        </div>
+    </div>
+    
+    <!-- History Grid -->
+    {% if checks.items %}
+        <div class="history-grid">
+            {% for check in checks.items %}
+                <div class="history-item">
+                    <div class="history-icon {% if check.decision == 'Recommended' %}recommended{% else %}not-recommended{% endif %}">
+                        {% if check.decision == 'Recommended' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% else %}
+                            <i class="fas fa-exclamation-triangle"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="history-content">
+                        <h3>
+                            Nutrition Check #{{ check.id }}
+                            <span class="badge {% if check.decision == 'Recommended' %}badge-success{% else %}badge-danger{% endif %}">
+                                {{ check.decision }}
+                            </span>
+                        </h3>
+                        <div class="history-meta">
+                            <span>
+                                <i class="fas fa-user"></i>
+                                Age {{ check.age }}
+                            </span>
+                            <span>
+                                <i class="fas fa-weight"></i>
+                                {{ check.weight }}kg
+                            </span>
+                            <span>
+                                <i class="fas fa-calendar"></i>
+                                {{ check.checked_at.strftime('%d %b %Y') }}
+                            </span>
+                            <span>
+                                <i class="fas fa-clock"></i>
+                                {{ check.checked_at.strftime('%I:%M %p') }}
+                            </span>
+                            {% if check.email_sent %}
+                            <span style="color: var(--warning);">
+                                <i class="fas fa-envelope"></i>
+                                Alert Sent
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="history-actions">
+                        <a href="{{ url_for('history_detail', check_id=check.id) }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if checks.pages > 1 %}
+        <div class="pagination">
+            {% if checks.has_prev %}
+                <a href="{{ url_for('history', page=checks.prev_num) }}">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </a>
+            {% else %}
+                <span class="disabled">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </span>
+            {% endif %}
+            
+            {% for page_num in checks.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                {% if page_num %}
+                    {% if page_num == checks.page %}
+                        <span class="active">{{ page_num }}</span>
+                    {% else %}
+                        <a href="{{ url_for('history', page=page_num) }}">{{ page_num }}</a>
+                    {% endif %}
+                {% else %}
+                    <span>...</span>
+                {% endif %}
+            {% endfor %}
+            
+            {% if checks.has_next %}
+                <a href="{{ url_for('history', page=checks.next_num) }}">
+                    Next <i class="fas fa-chevron-right"></i>
+                </a>
+            {% else %}
+                <span class="disabled">
+                    Next <i class="fas fa-chevron-right"></i>
+                </span>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No History Yet</h3>
+            <p>You haven't checked any nutrition labels yet. Start analyzing to see your history here!</p>
+            <a href="{{ url_for('checker') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-camera"></i> Start Your First Check
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
